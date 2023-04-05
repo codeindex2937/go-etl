@@ -14,6 +14,7 @@ func (s *provider) stop() {
 	for _, r := range s.consumers {
 		close(r)
 	}
+	s.consumers = []chan<- any{}
 }
 
 func (s *provider) addConsumer(ch chan<- any) {

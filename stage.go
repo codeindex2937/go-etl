@@ -46,9 +46,13 @@ func (s *Stage[K, V]) run(m *Manager) {
 			s.stop()
 			return
 		}
-		for _, d := range s.handler(msg.(K)) {
-			s.deliver(d)
-		}
+
+		resp := s.handler(msg.(K))
+		go func() {
+			for _, d := range resp {
+				s.deliver(d)
+			}
+		}()
 	}
 }
 
