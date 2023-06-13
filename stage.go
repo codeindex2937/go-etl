@@ -1,10 +1,14 @@
 package etltool
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+)
 
 type Stage[K any, V any] struct {
 	consumer
 	provider
+	wg      sync.WaitGroup
 	handler func(input K) []V
 }
 
@@ -43,15 +47,18 @@ func (s *Stage[K, V]) run(m *Manager) {
 	for {
 		msg, ok := s.consume(m.aborted)
 		if !ok {
+			s.wg.Wait()
 			s.stop()
 			return
 		}
 
 		resp := s.handler(msg.(K))
+		s.wg.Add(1)
 		go func() {
 			for _, d := range resp {
 				s.deliver(d)
 			}
+			s.wg.Done()
 		}()
 	}
 }
