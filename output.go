@@ -1,16 +1,14 @@
 package etltool
 
-import "reflect"
-
 type Output[K any] struct {
-	consumer
+	downstream
 	handler func(input K)
 }
 
 func NewOutput[K any](m *Manager, replicas int, handler func(input K)) *Output[K] {
 	s := &Output[K]{
-		consumer: consumer{
-			inPipes: make([]reflect.SelectCase, 0),
+		downstream: downstream{
+			instreams: m.m.NewInStreamSet(),
 		},
 		handler: handler,
 	}

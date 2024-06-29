@@ -13,11 +13,11 @@ func TestRecursive(t *testing.T) {
 	defer abortFn()
 
 	data := &[]int{}
-	m := New(aborted)
-	source := NewSource(m, 1, func() []int {
+	m := New(aborted, &ChanMessageSystem{})
+	source := NewSource(m, "ints", 1, func() []int {
 		return []int{0}
 	})
-	s := NewStageFrom(m, 1, func(v int) []int {
+	s := HandleSource(m, "recursive", 1, func(v int) []int {
 		if v > 2 {
 			return nil
 		}
@@ -30,7 +30,7 @@ func TestRecursive(t *testing.T) {
 		*data = append(*data, r...)
 		return r
 	}, source)
-	PipeTo(s, s)
+	Dispatch(m, s, s)
 
 	go func() {
 		time.Sleep(time.Second)
