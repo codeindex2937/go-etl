@@ -3,6 +3,7 @@ package etltool
 type Output[K any] struct {
 	downstream
 	handler func(input K)
+	m       *Manager
 }
 
 func NewOutput[K any](m *Manager, replicas int, handler func(input K)) *Output[K] {
@@ -11,6 +12,7 @@ func NewOutput[K any](m *Manager, replicas int, handler func(input K)) *Output[K
 			instreams: m.m.NewInStreamSet(),
 		},
 		handler: handler,
+		m:       m,
 	}
 	m.replicas = append(m.replicas, replica{
 		replicas: replicas,
@@ -19,14 +21,15 @@ func NewOutput[K any](m *Manager, replicas int, handler func(input K)) *Output[K
 	return s
 }
 
-func (w *Output[K]) run(m *Manager) {
-	defer m.wg.Done()
+func (d *Output[K]) run() {
+	defer d.m.wg.Done()
 
 	for {
-		msg, ok := w.consume(m.aborted)
+		msg, ok := d.consume(d.m.aborted)
 		if !ok {
 			return
 		}
-		w.handler(msg.(K))
+		d.handler(msg.(K))
+		d.m.addFinished(1)
 	}
 }

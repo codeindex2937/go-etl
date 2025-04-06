@@ -42,6 +42,10 @@ type ChanOutStreamSet struct {
 	outStreams []OutStream
 }
 
+func (s *ChanOutStreamSet) Size() int {
+	return len(s.outStreams)
+}
+
 func (s *ChanOutStreamSet) Register(d OutStream) {
 	s.outStreams = append(s.outStreams, d.(*ChanOutStream))
 }
@@ -69,6 +73,10 @@ func (s *ChanInStream) Fetch(aborted context.Context) (any, bool) {
 
 type ChanInStreamSet struct {
 	instreams []reflect.SelectCase
+}
+
+func (s *ChanInStreamSet) Size() int {
+	return len(s.instreams)
 }
 
 func (s *ChanInStreamSet) Subscribe(i InStream) {

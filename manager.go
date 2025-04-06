@@ -7,13 +7,16 @@ import (
 
 type replica struct {
 	replicas int
-	run      func(*Manager)
+	run      func()
 }
 type Manager struct {
-	aborted  context.Context
-	wg       sync.WaitGroup
-	replicas []replica
-	m        MessageSystem
+	aborted         context.Context
+	wg              sync.WaitGroup
+	replicas        []replica
+	m               MessageSystem
+	processingCount int
+	finishCount     int
+	lock            sync.RWMutex
 }
 
 func (m *Manager) Wait() {
@@ -24,9 +27,27 @@ func (m *Manager) Start() {
 	for _, s := range m.replicas {
 		for i := 0; i < s.replicas; i++ {
 			m.wg.Add(1)
-			go s.run(m)
+			go s.run()
 		}
 	}
+}
+
+func (m *Manager) GetProcessing() [2]int {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	return [2]int{m.processingCount, m.finishCount}
+}
+
+func (m *Manager) addProcessing(c int) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.processingCount += c
+}
+
+func (m *Manager) addFinished(c int) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.finishCount += c
 }
 
 func HandleStage[K any, V any, U any](m *Manager, id string, replicas int, handler func(input K) []V, u *Stage[U, K]) *Stage[K, V] {

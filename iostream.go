@@ -5,6 +5,7 @@ import "context"
 type InStreamSet interface {
 	Subscribe(InStream)
 	Fetch(context.Context) (any, bool)
+	Size() int
 }
 
 type InStream interface {
@@ -15,6 +16,7 @@ type OutStreamSet interface {
 	Register(OutStream)
 	Publish(any)
 	Term()
+	Size() int
 }
 
 type OutStream interface {

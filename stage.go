@@ -10,6 +10,7 @@ type Stage[K any, V any] struct {
 	Id      string
 	wg      sync.WaitGroup
 	handler func(input K) []V
+	m       *Manager
 }
 
 func NewStage[K any, V any](m *Manager, id string, replicas int, handler func(input K) []V) *Stage[K, V] {
@@ -20,6 +21,7 @@ func NewStage[K any, V any](m *Manager, id string, replicas int, handler func(in
 		},
 		upstream: upstream{outstreams: m.m.NewOutStreamSet()},
 		handler:  handler,
+		m:        m,
 	}
 	m.replicas = append(m.replicas, replica{
 		replicas: replicas,
@@ -28,21 +30,23 @@ func NewStage[K any, V any](m *Manager, id string, replicas int, handler func(in
 	return s
 }
 
-func (s *Stage[K, V]) run(m *Manager) {
-	defer m.wg.Done()
+func (s *Stage[K, V]) run() {
+	defer s.m.wg.Done()
 
 	for {
-		msg, ok := s.consume(m.aborted)
+		msg, ok := s.consume(s.m.aborted)
 		if !ok {
 			s.wg.Wait()
 			s.stop()
 			return
 		}
+		s.m.addFinished(1)
 
 		resp := s.handler(msg.(K))
 		s.wg.Add(1)
 		go func() {
 			for _, d := range resp {
+				s.m.addProcessing(s.outstreams.Size())
 				s.deliver(d)
 			}
 			s.wg.Done()
