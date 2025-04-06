@@ -53,3 +53,7 @@ func (s *Stage[K, V]) run() {
 		}()
 	}
 }
+
+func (s *Stage[K, V]) AddInputStream(input InStream) {
+	s.instreams.Subscribe(input)
+}
