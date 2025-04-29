@@ -30,6 +30,6 @@ func (d *Output[K]) run() {
 			return
 		}
 		d.handler(msg.(K))
-		d.m.addFinished(1)
+		d.m.AddFinished(1)
 	}
 }

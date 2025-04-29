@@ -40,13 +40,13 @@ func (s *Stage[K, V]) run() {
 			s.stop()
 			return
 		}
-		s.m.addFinished(1)
+		s.m.AddFinished(1)
 
 		resp := s.handler(msg.(K))
 		s.wg.Add(1)
 		go func() {
 			for _, d := range resp {
-				s.m.addProcessing(s.outstreams.Size())
+				s.m.AddProcessing(s.outstreams.Size())
 				s.deliver(d)
 			}
 			s.wg.Done()

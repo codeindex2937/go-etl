@@ -38,13 +38,13 @@ func (m *Manager) GetProcessing() [2]int {
 	return [2]int{m.processingCount, m.finishCount}
 }
 
-func (m *Manager) addProcessing(c int) {
+func (m *Manager) AddProcessing(c int) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	m.processingCount += c
 }
 
-func (m *Manager) addFinished(c int) {
+func (m *Manager) AddFinished(c int) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	m.finishCount += c

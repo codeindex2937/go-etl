@@ -42,7 +42,7 @@ func (u *Upstream[K]) Stop() {
 func (u *Upstream[K]) Run() {
 	for _, d := range u.handler() {
 		u.deliver(d)
-		u.m.addProcessing(u.outstreams.Size())
+		u.m.AddProcessing(u.outstreams.Size())
 	}
 }
 
